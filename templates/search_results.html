@@ -1,0 +1,14 @@
+<html>
+
+<body>
+
+<form action="{{url_for('addMoviesWatched')}}" method = "POST">
+{% for r in results %}
+<p><input type="checkbox" name="watched" value="{{r['imdb_id']}}"><a href="http://www.imdb.com/title/{{r['imdb_id']}}" target = "blank_">{{r['title']}}</a></p>
+<img src="{{image_urls[r['imdb_id']]}}" alt="some_text" style="height:200px">
+{% endfor %}
+</br>
+<input type="submit" value="I watched these movies">
+</form>
+</body>
+</html>
