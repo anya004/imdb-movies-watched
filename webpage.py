@@ -1,5 +1,29 @@
 from flask import Flask, render_template, request, url_for, redirect, jsonify, flash
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func
+from imdb_setup import Base, Movie, Person, Roles, User, MoviesWatched
 app = Flask(__name__)
+
+#Create session and connect to the database
+engine = create_engine('sqlite:///imdb_recognition.db')
+Base.metadata.bind = engine
+DBsession = sessionmaker(bind = engine)
+session = DBsession()
+
+#fakeuser
+user = User(name='Anna')
+session.add(user)
+session.commit()
+#fakeuser end
+
+@app.route('/')
+@app.route('/home/', methods=['GET', 'POST'])
+def showHomePage():
+    if request.method == 'POST':
+    else:
+        return render_template('homepage.html')
+
 if __name__ == '__main__':
     #app.secret_key = "super_secret_key"
     app.debug = True
