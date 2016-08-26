@@ -47,6 +47,38 @@ def showSearchResults(search_for):
         else:
             image_urls[r['imdb_id']] = image_url.poster_url
     return render_template('search_results.html', results=results, image_urls=image_urls)
+
+@app.route('/add/', methods= ['POST'])
+def addMoviesWatched():
+    movie_ids_watched = request.form.getlist('watched')
+    for imdb_id in movie_ids_watched:
+        title = imdb.get_title_by_id(imdb_id)
+
+        movie = session.query(Movie).filter_by(imdb_id=imdb_id).one_or_none()
+        if not movie:
+            print "movie not in the database"
+            movie = Movie(imdb_id=imdb_id, title = title.title, poster_url=title.poster_url)
+            session.add(movie)
+
+            for actor in title.credits:
+              if actor.roles:
+                  person = Person(name=actor.name, imdb_id=actor.imdb_id)
+                  session.add(person)
+                  roles = Roles(movie_id=imdb_id, person_id=actor.imdb_id, character_name=" / ".join(actor.roles))
+                  session.add(roles)
+
+        added_flag = session.query(MoviesWatched).filter_by(movie_id=imdb_id, user_id=1).one_or_none()
+        if not added_flag:
+            print "movie not watched yet"
+            movies_watched = MoviesWatched(user_id=1, movie_id=imdb_id)
+            session.add(movies_watched)
+
+        session.commit()
+
+    return redirect(url_for('showHomePage'))
+
+
+
 if __name__ == '__main__':
     #app.secret_key = "super_secret_key"
     app.debug = True
