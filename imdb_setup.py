@@ -1,5 +1,6 @@
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, Float, Boolean, DateTime, String, UniqueConstraint
+import datetime
+from sqlalchemy import Column, ForeignKey, Integer, Float, Boolean, DateTime, String, UniqueConstraint, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -28,10 +29,41 @@ class Roles(Base):
     person_id = Column(String(20), ForeignKey('people.imdb_id'))
     character_name = Column(String(20))
 
+# class User(Base):
+#     __tablename__ = 'users'
+#     id = Column(Integer, primary_key = True)
+#     name = Column(String(20), nullable = False)
+
 class User(Base):
     __tablename__ = 'users'
-    id = Column(Integer, primary_key = True)
-    name = Column(String(20), nullable = False)
+    id = Column(Integer, primary_key=True)
+    email = Column(String(100), unique=True, nullable=False)
+    name = Column(String(100), nullable=True)
+    avatar = Column(String(200))
+    active = Column(Boolean, default=False)
+    tokens = Column(Text)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow())
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        try:
+            return self.id
+        except AttributeError:
+            raise NotImplementedError('No `id` attribute - override `get_id`')
+
+
+
 
 class MoviesWatched(Base):
     __tablename__ = 'movies_watched'
