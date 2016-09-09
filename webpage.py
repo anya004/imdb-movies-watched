@@ -78,6 +78,12 @@ def request_loader(request):
 #    return render_template('signinwithgoogle.html')
 
 @app.route('/')
+def landing_page():
+    if current_user.is_authenticated:
+        return redirect(url_for("showHomePage"))
+    else:
+        return render_template("welcomePage.html")
+
 @app.route('/home/', methods=['GET', 'POST'])
 @login_required
 def showHomePage():
