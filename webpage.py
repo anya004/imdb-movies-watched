@@ -151,7 +151,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('showHomePage'))
+    return redirect(url_for('landing_page'))
 
 @app.route('/gCallback')
 def callback():
