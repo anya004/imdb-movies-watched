@@ -53,18 +53,24 @@
 
 <body>
     <div align=right>
+      Hi, {{user_email}}
       <button class="loginBtn loginBtn--google" onclick="location.href='{{url_for("logout")}}';">
         Logout
       </button>
     </div>
 
+    <div>
+      <button onclick="location.href='{{url_for("showMoviesWatched")}}';">
+        My Watched Movies
+      </button>
+    </div>
+
+    <div>
     <form action="{{url_for('showHomePage')}}" method = 'POST'>
-
     <p>Search:</p>
-
     <input type = 'text' size='30' name = 'title' placeholder = 'Title of the movie'>
-
     <input type='submit' value='Search'>
+    </div>
 </body>
 
 </html>
