@@ -74,10 +74,6 @@ def request_loader(request):
 
 #Routes
 
-#@app.route('/')
-#def sign_in():
-#    return render_template('signinwithgoogle.html')
-
 @app.route('/')
 def landing_page():
     if current_user.is_authenticated:
@@ -94,56 +90,6 @@ def showHomePage():
     else:
         cur_email = SQLsession.query(User).filter_by(id=current_user.id).one()
         return render_template('homepage.html', user_email=cur_email.email)
-
-@app.route('/home/mywatchedlist/', methods=['GET'])
-@login_required
-def showMoviesWatched():
-    cur_user = SQLsession.query(User).filter_by(id=current_user.id).one()
-    #movies_watched = SQLsession.query(MoviesWatched).filter_by(user_id=cur_user.id).join(Movie).all()
-    #movies_watched = SQLsession.query(User.movies_watched).filter_by(id=cur_user).all()
-
-    #movies_watched = cur_user.movies_watched
-
-    #cmd = 'SELECT * from movie join movies_watched on movie.imdb_id = movies_watched.movie_id where movies_watched.user_id = ' + str(current_user.id)
-    #movies_watched = SQLsession.execute(text(cmd))
-    movies_watched = SQLsession.query(Movie).join(MoviesWatched).filter(MoviesWatched.user_id == current_user.id).all()
-    print movies_watched
-    #for i in movies_watched:
-        #print i
-        #print i.movie_id
-    image_urls = {}
-    for m in movies_watched:
-        print m.imdb_id, m
-        image_urls[m.imdb_id] = m.poster_url
-        print m.imdb_id, "image URL:", image_urls[m.imdb_id]
-
-    print image_urls
-    # for m in movies_watched:
-    #     print "in url loop"
-    #     print m.imdb_id
-    #     title = imdb.get_title_by_id(m.imdb_id)
-    #     print title
-    #     image_url = imdb.get_title_by_id(m.imdb_id)
-    #     if not image_url.poster_url:
-    #         image_urls[m.imdb_id] = "http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/32x44/film-3119741174._CB282925985_.png"
-    #         print image_urls[m.imdb_id]
-    #     else:
-    #         image_urls[m.imdb_id] = image_url.poster_url
-    #         print image_urls[m.imdb_id]
-    return render_template("movieswatched.html", user_email=cur_user.email, results=movies_watched, image_urls=image_urls)
-
-@app.route('/search/<string:search_for>/')
-@login_required
-def showSearchResults(search_for):
-    results = imdb.search_for_title(search_for)
-    image_urls = {}
-    for r in results:
-        image_url = imdb.get_title_by_id(r['imdb_id'])
-        if not image_url.poster_url:
-            image_urls[r['imdb_id']] = "http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/32x44/film-3119741174._CB282925985_.png"
-        else:
-            image_urls[r['imdb_id']] = image_url.poster_url
-    return render_template('search_results.html', results=results, image_urls=image_urls)
 
 @app.route('/add/', methods= ['POST'])
 @login_required
@@ -174,6 +120,33 @@ def addMoviesWatched():
         SQLsession.commit()
 
     return redirect(url_for('showHomePage'))
+
+@app.route('/home/mywatchedlist/', methods=['GET'])
+@login_required
+def showMoviesWatched():
+    cur_user = SQLsession.query(User).filter_by(id=current_user.id).one()
+    movies_watched = SQLsession.query(Movie).join(MoviesWatched).filter(MoviesWatched.user_id == current_user.id).all()
+    image_urls = {}
+    for m in movies_watched:
+        print m.imdb_id, m
+        image_urls[m.imdb_id] = m.poster_url
+        print m.imdb_id, "image URL:", image_urls[m.imdb_id]
+
+    return render_template("movieswatched.html", user_email=cur_user.email, results=movies_watched, image_urls=image_urls)
+
+
+@app.route('/search/<string:search_for>/')
+@login_required
+def showSearchResults(search_for):
+    results = imdb.search_for_title(search_for)
+    image_urls = {}
+    for r in results:
+        image_url = imdb.get_title_by_id(r['imdb_id'])
+        if not image_url.poster_url:
+            image_urls[r['imdb_id']] = "http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/32x44/film-3119741174._CB282925985_.png"
+        else:
+            image_urls[r['imdb_id']] = image_url.poster_url
+    return render_template('search_results.html', results=results, image_urls=image_urls)
 
 @app.route('/login')
 def login():
