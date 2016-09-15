@@ -132,8 +132,81 @@ def showMoviesWatched():
         image_urls[m.imdb_id] = m.poster_url
         print m.imdb_id, "image URL:", image_urls[m.imdb_id]
 
-    return render_template("movieswatched.html", user_email=cur_user.email, results=movies_watched, image_urls=image_urls)
+    ### Network visualization
+    #commonactors = SQLsession.query(Person).join(Movie).filter(MoviesWatched.user_id)
 
+    subq = SQLsession.query(Roles.person_id).join(MoviesWatched, MoviesWatched.movie_id == Roles.movie_id).group_by(Roles.person_id).having(func.count(Roles.person_id) > 1).subquery()
+    repeated_actors = SQLsession.query(MoviesWatched, Roles).join(Roles, MoviesWatched.movie_id == Roles.movie_id).filter(Roles.person_id.in_(subq)).all()
+    #print "This is repeated_actors:", repeated_actors
+
+    #Nodes - unique Movies and Actors
+    #Edges - links between unique actors and multiple movies
+
+    nodes = []
+    unique_nodes_check = {}
+    node_count = 0
+    edges = []
+
+    for movie, actor in repeated_actors:
+        #print movie.movie_id, actor.person_id
+        #add to nodes
+        if movie.movie_id not in unique_nodes_check.keys():
+            unique_nodes_check[movie.movie_id] = 1
+            node = {}
+            node['id'] = node_count
+            node_count += 1
+            node['group'] = 'movie'
+            node['imdb_id'] = movie.movie_id
+            nodes.append(node)
+        if actor.person_id not in unique_nodes_check.keys():
+            unique_nodes_check[actor.person_id] = 1
+            node = {}
+            node['id'] = node_count
+            node_count += 1
+            node['group'] = 'actor'
+            node['imdb_id'] = actor.person_id
+            nodes.append(node)
+        #add edge
+        #loop though nodes to find a dictionary with the imdb id, get node id
+        #add to, from ids
+        edge = {}
+        for node in nodes:
+            if node['imdb_id'] == actor.person_id:
+                edge['from'] = node['id']
+            if node['imdb_id'] == movie.movie_id:
+                edge['to'] = node['id']
+        edges.append(edge)
+
+
+
+    print nodes
+    print edges
+
+
+
+
+    ###SQL Equivalent:
+    # cmd = '''SELECT *
+    #         from movies_watched
+    #         join roles on movies_watched.movie_id == roles.movie_id
+    #         where roles.person_id in
+    #         (SELECT roles.person_id
+    #         from movies_watched
+    #         join roles on movies_watched.movie_id == roles.movie_id
+    #         group by roles.person_id
+    #         having count(roles.person_id) > 1
+    #         )'''
+    # query = SQLsession.execute(text(cmd))
+
+    #edges
+    ### Network visualization ends
+
+    return render_template("movieswatched.html", user_email=cur_user.email, results=movies_watched, image_urls=image_urls)
+#
+# @app.route('/home/mywatchedlist/commonactors/', methods=['GET'])
+# @login_required
+# def showCommonActors():
+#     movies_watched = SQLsession.query(Movie).join(MoviesWatched).filter(MoviesWatched.user_id == current_user.id).all()
 
 @app.route('/search/<string:search_for>/')
 @login_required
