@@ -1,6 +1,6 @@
 import sys
 import datetime
-from sqlalchemy import Column, ForeignKey, Integer, Float, Boolean, DateTime, String, UniqueConstraint, Text
+from sqlalchemy import Table, Column, ForeignKey, Integer, Float, Boolean, DateTime, String, UniqueConstraint, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -15,6 +15,9 @@ class Movie(Base):
     imdb_id = Column(String(20))
     title = Column(String(100), nullable = False)
     poster_url = Column(String(250))
+
+    movies_watched_by = relationship("MoviesWatched", back_populates="movie")
+
 
 class Person(Base):
     __tablename__ = 'people'
@@ -44,6 +47,8 @@ class User(Base):
     tokens = Column(Text)
     created_at = Column(DateTime, default=datetime.datetime.utcnow())
 
+    movies_watched = relationship("MoviesWatched", back_populates="user")
+
     @property
     def is_active(self):
         return True
@@ -63,13 +68,20 @@ class User(Base):
             raise NotImplementedError('No `id` attribute - override `get_id`')
 
 
+# Helper table: http://flask-sqlalchemy.pocoo.org/2.1/models/
 
+#movies_watched = Table('movies_watched',
+    #Column('movie_id', Integer, ForeignKey('movie.id')),
+    #Column('user_id', Integer, ForeignKey('users.id'))
+#)
 
 class MoviesWatched(Base):
     __tablename__ = 'movies_watched'
-    id = Column(Integer, primary_key = True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    movie_id = Column(String(20), ForeignKey('movie.imdb_id'))
+    #id = Column(Integer, primary_key = True)
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    movie_id = Column(String(20), ForeignKey('movie.imdb_id'), primary_key=True)
+    user = relationship("User", back_populates = 'movies_watched')
+    movie = relationship("Movie", back_populates = 'movies_watched_by')
 
 engine = create_engine('sqlite:///imdb_recognition.db')
 

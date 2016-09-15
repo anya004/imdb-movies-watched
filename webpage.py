@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, redirect, json, jsonify, flash, session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import text
 from sqlalchemy import func
 from imdb_setup import Base, Movie, Person, Roles, User, MoviesWatched
 from config import Auth
@@ -68,7 +69,7 @@ def request_loader(request):
     # DO NOT ever store passwords in plaintext and always compare password
     # hashes using constant-time comparison!
     #$user.is_authenticated = request.form['pw'] == users[email]['pw']
-    print "i come here"
+    #print "i come here"
     return #user
 
 #Routes
@@ -91,7 +92,45 @@ def showHomePage():
         search_for = request.form['title']
         return redirect(url_for('showSearchResults', search_for = search_for))
     else:
-        return render_template('homepage.html')
+        cur_email = SQLsession.query(User).filter_by(id=current_user.id).one()
+        return render_template('homepage.html', user_email=cur_email.email)
+
+@app.route('/home/mywatchedlist/', methods=['GET'])
+@login_required
+def showMoviesWatched():
+    cur_user = SQLsession.query(User).filter_by(id=current_user.id).one()
+    #movies_watched = SQLsession.query(MoviesWatched).filter_by(user_id=cur_user.id).join(Movie).all()
+    #movies_watched = SQLsession.query(User.movies_watched).filter_by(id=cur_user).all()
+
+    #movies_watched = cur_user.movies_watched
+
+    #cmd = 'SELECT * from movie join movies_watched on movie.imdb_id = movies_watched.movie_id where movies_watched.user_id = ' + str(current_user.id)
+    #movies_watched = SQLsession.execute(text(cmd))
+    movies_watched = SQLsession.query(Movie).join(MoviesWatched).filter(MoviesWatched.user_id == current_user.id).all()
+    print movies_watched
+    #for i in movies_watched:
+        #print i
+        #print i.movie_id
+    image_urls = {}
+    for m in movies_watched:
+        print m.imdb_id, m
+        image_urls[m.imdb_id] = m.poster_url
+        print m.imdb_id, "image URL:", image_urls[m.imdb_id]
+
+    print image_urls
+    # for m in movies_watched:
+    #     print "in url loop"
+    #     print m.imdb_id
+    #     title = imdb.get_title_by_id(m.imdb_id)
+    #     print title
+    #     image_url = imdb.get_title_by_id(m.imdb_id)
+    #     if not image_url.poster_url:
+    #         image_urls[m.imdb_id] = "http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/32x44/film-3119741174._CB282925985_.png"
+    #         print image_urls[m.imdb_id]
+    #     else:
+    #         image_urls[m.imdb_id] = image_url.poster_url
+    #         print image_urls[m.imdb_id]
+    return render_template("movieswatched.html", user_email=cur_user.email, results=movies_watched, image_urls=image_urls)
 
 @app.route('/search/<string:search_for>/')
 @login_required
@@ -115,7 +154,7 @@ def addMoviesWatched():
 
         movie = SQLsession.query(Movie).filter_by(imdb_id=imdb_id).one_or_none()
         if not movie:
-            print "movie not in the database"
+            #print "movie not in the database"
             movie = Movie(imdb_id=imdb_id, title = title.title, poster_url=title.poster_url)
             SQLsession.add(movie)
 
@@ -128,7 +167,7 @@ def addMoviesWatched():
 
         added_flag = SQLsession.query(MoviesWatched).filter_by(movie_id=imdb_id, user_id=1).one_or_none()
         if not added_flag:
-            print "movie not watched yet"
+            #print "movie not watched yet"
             movies_watched = MoviesWatched(user_id=current_user.id, movie_id=imdb_id)
             SQLsession.add(movies_watched)
 
