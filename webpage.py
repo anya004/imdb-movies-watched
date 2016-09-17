@@ -9,6 +9,7 @@ from flask_login import LoginManager, login_required, current_user, login_user, 
 from imdbpie import Imdb
 from requests_oauthlib import OAuth2Session
 import os
+import json
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 imdb = Imdb()
@@ -179,10 +180,13 @@ def showMoviesWatched():
 
 
 
-    print nodes
-    print edges
+    #print nodes
+    #print edges
 
+    json_nodes = json.dumps(nodes)
+    #print json_nodes
 
+    json_edges = json.dumps(edges)
 
 
     ###SQL Equivalent:
@@ -201,7 +205,12 @@ def showMoviesWatched():
     #edges
     ### Network visualization ends
 
-    return render_template("movieswatched.html", user_email=cur_user.email, results=movies_watched, image_urls=image_urls)
+    return render_template("movieswatched.html",
+                            user_email=cur_user.email,
+                            results=movies_watched,
+                            image_urls=image_urls,
+                            json_nodes=json_nodes,
+                            json_edges=json_edges)
 #
 # @app.route('/home/mywatchedlist/commonactors/', methods=['GET'])
 # @login_required
