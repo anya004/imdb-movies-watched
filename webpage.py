@@ -151,7 +151,6 @@ def showMoviesWatched():
     edges = []
 
     for movie, actor in repeated_actors:
-        #print movie.movie_id, actor.person_id
         #add to nodes
         if movie.movie_id not in unique_nodes_check.keys():
             unique_nodes_check[movie.movie_id] = 1
@@ -160,6 +159,7 @@ def showMoviesWatched():
             node_count += 1
             node['group'] = 'movie'
             node['imdb_id'] = movie.movie_id
+            node['label'] = SQLsession.query(Movie.title).filter(Movie.imdb_id == movie.movie_id).scalar()
             nodes.append(node)
         if actor.person_id not in unique_nodes_check.keys():
             unique_nodes_check[actor.person_id] = 1
@@ -168,6 +168,7 @@ def showMoviesWatched():
             node_count += 1
             node['group'] = 'actor'
             node['imdb_id'] = actor.person_id
+            node['label'] = SQLsession.query(Person.name).filter(Person.imdb_id == actor.person_id).scalar()
             nodes.append(node)
         #add edge
         #loop though nodes to find a dictionary with the imdb id, get node id
@@ -180,14 +181,7 @@ def showMoviesWatched():
                 edge['to'] = node['id']
         edges.append(edge)
 
-
-
-    #print nodes
-    #print edges
-
     json_nodes = json.dumps(nodes)
-    #print json_nodes
-
     json_edges = json.dumps(edges)
 
 
