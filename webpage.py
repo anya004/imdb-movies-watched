@@ -107,8 +107,10 @@ def addMoviesWatched():
 
             for actor in title.credits:
               if actor.roles:
-                  person = Person(name=actor.name, imdb_id=actor.imdb_id)
-                  SQLsession.add(person)
+                  actor_in_database = SQLsession.query(Person).filter(Person.imdb_id == actor.imdb_id).one_or_none()
+                  if actor_in_database is None:
+                      person = Person(name=actor.name, imdb_id=actor.imdb_id)
+                      SQLsession.add(person)
                   roles = Roles(movie_id=imdb_id, person_id=actor.imdb_id, character_name=" / ".join(actor.roles))
                   SQLsession.add(roles)
 
