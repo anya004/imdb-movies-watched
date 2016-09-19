@@ -1,5 +1,7 @@
 .DS_Store
 *.pyc
-*.db
 
 .imdbpie_cache/
+
+fill_imdb_database.py
+templates/signinwithgoogle.html
