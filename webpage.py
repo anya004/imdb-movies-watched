@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from flask import Flask, render_template, request, url_for, redirect, json, jsonify, flash, session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,6 +12,7 @@ from requests_oauthlib import OAuth2Session
 import os
 import json
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+import time
 
 imdb = Imdb()
 imdb = Imdb(anonymize=True) # to proxy requests
@@ -90,7 +92,8 @@ def showHomePage():
         return redirect(url_for('showSearchResults', search_for = search_for))
     else:
         cur_email = SQLsession.query(User).filter_by(id=current_user.id).one()
-        return render_template('homepage.html', user_email=cur_email.email)
+        return render_template('homepage.html',
+                                user_email=cur_email.email)
 
 @app.route('/add/', methods= ['POST'])
 @login_required
@@ -199,7 +202,7 @@ def showMoviesWatched():
     #         having count(roles.person_id) > 1
     #         )'''
     # query = SQLsession.execute(text(cmd))
-    
+
     ### Network visualization ends
 
     return render_template("movieswatched.html",
@@ -217,15 +220,26 @@ def showMoviesWatched():
 @app.route('/search/<string:search_for>/')
 @login_required
 def showSearchResults(search_for):
+    start1 = time.time()
     results = imdb.search_for_title(search_for)
+    end1 = time.time()
     image_urls = {}
+    start2=time.time()
     for r in results:
+        print r, "does the result return url: " #r['poster_url']
         image_url = imdb.get_title_by_id(r['imdb_id'])
         if not image_url.poster_url:
             image_urls[r['imdb_id']] = "http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/32x44/film-3119741174._CB282925985_.png"
         else:
             image_urls[r['imdb_id']] = image_url.poster_url
-    return render_template('search_results.html', results=results, image_urls=image_urls)
+    end2=time.time()
+    json_image_urls = json.dumps(image_urls)
+    print json_image_urls
+    print "times search imdb ", end1 - start1, " ", end2 - start2
+    return render_template('search_results.html',
+                            results=results,
+                            image_urls=image_urls,
+                            json_image_urls=json_image_urls)
 
 @app.route('/login')
 def login():
