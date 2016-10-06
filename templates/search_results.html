@@ -1,5 +1,12 @@
 <html>
 <head>
+  <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
+  <!-- scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/JSXTransformer.js"></script>
+  <script src="https://code.jquery.com/jquery-1.12.4.js" integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU=" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="jquery.imageloader.js"></script>
   <style>
     body { padding: 2em; }
 
@@ -59,13 +66,54 @@
     </button>
   </div>
 
-<form action="{{url_for('addMoviesWatched')}}" method = "POST">
-{% for r in results %}
-<p><input type="checkbox" name="watched" value="{{r['imdb_id']}}"><a href="http://www.imdb.com/title/{{r['imdb_id']}}" target = "blank_">{{r['title']}}</a></p>
-<img src="{{image_urls[r['imdb_id']]}}" alt="some_text" style="height:200px">
-{% endfor %}
-</br>
-<input type="submit" value="I watched these movies">
-</form>
+  <div id="search_results">
+    <form action="{{url_for('addMoviesWatched')}}" method = "POST">
+    {% for r in results %}
+    <div id="result-{{r['imdb_id']}}">
+      <p><input type="checkbox" name="watched" value="{{r['imdb_id']}}"><a href="http://www.imdb.com/title/{{r['imdb_id']}}" target = "blank_">{{r['title']}}</a></p>
+      <div id="{{r['imdb_id']}}" onload="date1 = (new Date()).valueOf();self.focus();$(document.body).imageloader({selector:'img', callback:function(){date2 = (new Date()).valueOf();opener.benchmark(date1 - date0, date2 - date0);}})">
+        <img class="lazy-img" src="{{image_urls[r['imdb_id']]}}" alt="some_text" style="height:200px">
+      </div>
+    </div>
+    {% endfor %}
+    <script>
+      $(function() {
+        $('.lazy-img').imageloader();
+        });
+    </script>
+    </br>
+    <input type="submit" value="I watched these movies">
+    </form>
+  </div>
 </body>
 </html>
+
+<div id="content">
+</div>
+
+<!-- <script type="text/jsx">
+
+  /*** @jsx React.DOM */
+
+  var image_urls = {{json_image_urls|safe}};
+  console.log(image_urls)
+
+  var realPython = React.createClass({
+    render: function() {
+      return (<img src={this.props.poster_url} alt="some_text" style="height:200px">)
+    }
+  });
+
+  var r
+  for (r in image_urls){
+    console.log(r);
+    ReactDOM.render(
+      React.createElement(realPython, {imdb_id:r, poster_url:image_urls[r]}),
+      document.getElementById({r})
+    );
+  }
+
+</script> -->
+
+<script type=>
+  </script>
