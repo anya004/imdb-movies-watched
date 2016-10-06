@@ -13,6 +13,9 @@ import os
 import json
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 import time
+import threading
+from threading import Thread
+import urllib2
 
 imdb = Imdb()
 imdb = Imdb(anonymize=True) # to proxy requests
@@ -74,6 +77,13 @@ def request_loader(request):
     #$user.is_authenticated = request.form['pw'] == users[email]['pw']
     #print "i come here"
     return #user
+
+def fetch_image_urls(r, image_urls2):
+    image_url = imdb.get_title_by_id(r['imdb_id'])
+    if not image_url.poster_url:
+        image_urls2[r['imdb_id']] = "http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/32x44/film-3119741174._CB282925985_.png"
+    else:
+        image_urls2[r['imdb_id']] = image_url.poster_url
 
 #Routes
 
@@ -223,19 +233,33 @@ def showSearchResults(search_for):
     start1 = time.time()
     results = imdb.search_for_title(search_for)
     end1 = time.time()
+    # image_urls = {}
+    # start2=time.time()
+    # for r in results:
+    #     print r, "does the result return url: " #r['poster_url']
+    #     image_url = imdb.get_title_by_id(r['imdb_id'])
+    #     if not image_url.poster_url:
+    #         image_urls[r['imdb_id']] = "http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/32x44/film-3119741174._CB282925985_.png"
+    #     else:
+    #         image_urls[r['imdb_id']] = image_url.poster_url
+    # end2=time.time()
+
+    #with threads
+    start3=time.time()
+
     image_urls = {}
-    start2=time.time()
-    for r in results:
-        print r, "does the result return url: " #r['poster_url']
-        image_url = imdb.get_title_by_id(r['imdb_id'])
-        if not image_url.poster_url:
-            image_urls[r['imdb_id']] = "http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/32x44/film-3119741174._CB282925985_.png"
-        else:
-            image_urls[r['imdb_id']] = image_url.poster_url
-    end2=time.time()
+    threads = [Thread(target=fetch_image_urls, args=(r, image_urls,)) for r in results]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    end3=time.time()
+    #with threads end
+
     json_image_urls = json.dumps(image_urls)
     print json_image_urls
-    print "times search imdb ", end1 - start1, " ", end2 - start2
+    print "times search imdb ", end1 - start1, " ", end3 - start3
     return render_template('search_results.html',
                             results=results,
                             image_urls=image_urls,
